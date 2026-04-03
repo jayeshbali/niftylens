@@ -41,10 +41,24 @@ interface GroupButtonProps {
 
 function GroupButton({ group, isActive, isOpen, activeTab, onClick, onTabSelect }: GroupButtonProps) {
   const hasMultiple = group.tabs.length > 1;
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const [dropdownPos, setDropdownPos] = useState<{ top: number; left: number } | null>(null);
+
+  // Measure button position after isOpen becomes true so the fixed dropdown
+  // lands directly below the trigger regardless of scroll or overflow containers.
+  useEffect(() => {
+    if (isOpen && triggerRef.current) {
+      const r = triggerRef.current.getBoundingClientRect();
+      setDropdownPos({ top: r.bottom + 4, left: r.left });
+    } else {
+      setDropdownPos(null);
+    }
+  }, [isOpen]);
 
   return (
-    <div className="relative">
+    <div className="shrink-0">
       <button
+        ref={triggerRef}
         onClick={onClick}
         className={`tab-btn flex items-center gap-1 ${isActive ? "tab-btn-active" : ""}`}
       >
@@ -52,17 +66,25 @@ function GroupButton({ group, isActive, isOpen, activeTab, onClick, onTabSelect 
         {hasMultiple && (
           <span
             className="text-xs opacity-60 transition-transform duration-150"
-            style={{ transform: isOpen ? "rotate(180deg)" : "rotate(0deg)", display: "inline-block" }}
+            style={{
+              transform: isOpen ? "rotate(180deg)" : "rotate(0deg)",
+              display: "inline-block",
+            }}
           >
             ▾
           </span>
         )}
       </button>
 
-      {hasMultiple && isOpen && (
+      {/* position: fixed escapes overflow-x: auto clipping on the nav container */}
+      {hasMultiple && isOpen && dropdownPos && (
         <div
-          className="absolute top-full left-0 mt-1 z-50 rounded-lg py-1 min-w-[160px] shadow-xl"
+          className="rounded-lg py-1 min-w-[160px] shadow-xl"
           style={{
+            position: "fixed",
+            top: dropdownPos.top,
+            left: dropdownPos.left,
+            zIndex: 200,
             background: "var(--surface-2)",
             border: "1px solid var(--border)",
           }}
@@ -99,7 +121,7 @@ export function TabNav({ activeTab, onChange }: TabNavProps) {
   const [flatMode, setFlatMode] = useState(false);
   const navRef = useRef<HTMLDivElement>(null);
 
-  // Close dropdown on outside click or Escape
+  // Close on outside click or Escape
   useEffect(() => {
     function onMouseDown(e: MouseEvent) {
       if (navRef.current && !navRef.current.contains(e.target as Node)) {
@@ -139,7 +161,6 @@ export function TabNav({ activeTab, onChange }: TabNavProps) {
       ref={navRef}
       style={{ borderBottom: "1px solid var(--border)", background: "var(--surface)" }}
     >
-      {/* Main nav bar */}
       <nav className="flex items-center gap-1 py-2 px-4 overflow-x-auto scrollbar-none">
         {flatMode ? (
           <>
@@ -154,7 +175,7 @@ export function TabNav({ activeTab, onChange }: TabNavProps) {
               <button
                 key={tab.id}
                 onClick={() => onChange(tab.id)}
-                className={`tab-btn ${activeTab === tab.id ? "tab-btn-active" : ""}`}
+                className={`tab-btn shrink-0 ${activeTab === tab.id ? "tab-btn-active" : ""}`}
               >
                 {tab.label}
               </button>
@@ -186,7 +207,7 @@ export function TabNav({ activeTab, onChange }: TabNavProps) {
         )}
       </nav>
 
-      {/* Sub-tab strip for active multi-tab group */}
+      {/* Sub-tab strip — shown when the active group has multiple tabs */}
       {!flatMode && activeGroupDef.tabs.length > 1 && (
         <div
           className="flex gap-1 px-4 pb-2 overflow-x-auto scrollbar-none"
@@ -196,7 +217,7 @@ export function TabNav({ activeTab, onChange }: TabNavProps) {
             <button
               key={tabId}
               onClick={() => onChange(tabId)}
-              className="text-xs px-3 py-1 rounded-md transition-colors whitespace-nowrap"
+              className="text-xs px-3 py-1 rounded-md transition-colors whitespace-nowrap shrink-0"
               style={{
                 color: activeTab === tabId ? "var(--cyan)" : "var(--text-muted)",
                 background: activeTab === tabId ? "rgba(34,211,238,0.08)" : "transparent",

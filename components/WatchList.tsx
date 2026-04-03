@@ -79,33 +79,18 @@ export function WatchList({ latest, prev }: WatchListProps) {
   if (items.length === 0) return null;
 
   return (
-    <div
-      className="rounded-xl p-5 border"
-      style={{
-        background: "var(--surface)",
-        borderColor: "var(--border)",
-      }}
-    >
-      <div className="flex items-center gap-2 mb-3">
-        <div
-          className="w-1.5 h-1.5 rounded-full"
-          style={{ background: "var(--amber-accent)" }}
-        />
-        <span
-          className="text-xs font-bold uppercase tracking-widest"
-          style={{ color: "var(--amber-accent)" }}
-        >
-          What to Watch
-        </span>
-      </div>
-      <ul className="space-y-2.5">
+    <div>
+      <span
+        className="text-xs font-bold uppercase tracking-widest"
+        style={{ color: "var(--text-muted)" }}
+      >
+        What to Watch
+      </span>
+      <ul className="mt-1.5 space-y-1">
         {items.map((item, i) => (
-          <li key={i} className="flex items-start gap-2.5">
-            <span
-              className="mt-1.5 shrink-0 w-1 h-1 rounded-full"
-              style={{ background: "var(--text-muted)" }}
-            />
-            <span className="text-sm leading-relaxed" style={{ color: "var(--text-secondary)" }}>
+          <li key={i} className="flex items-baseline gap-2">
+            <span className="shrink-0 text-xs" style={{ color: "var(--amber-accent)" }}>›</span>
+            <span className="text-xs leading-snug" style={{ color: "var(--text-secondary)" }}>
               {item.text}
             </span>
           </li>

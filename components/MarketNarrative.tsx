@@ -89,33 +89,19 @@ export function MarketNarrative({ latest, prev }: MarketNarrativeProps) {
   const sentences = [peStr, fwdStr, tensionStr, compositeStr].filter(Boolean);
 
   return (
-    <div
-      className="rounded-xl p-5 border"
+    <p
+      className="text-xs leading-relaxed pl-3"
       style={{
-        background: "linear-gradient(135deg, rgba(34,211,238,0.04) 0%, rgba(167,139,250,0.03) 100%)",
-        borderColor: "rgba(34,211,238,0.15)",
+        color: "var(--text-secondary)",
+        borderLeft: "2px solid rgba(34,211,238,0.4)",
       }}
     >
-      <div className="flex items-center gap-2 mb-3">
-        <div
-          className="w-1.5 h-1.5 rounded-full"
-          style={{ background: "var(--cyan)" }}
-        />
-        <span
-          className="text-xs font-bold uppercase tracking-widest"
-          style={{ color: "var(--cyan)" }}
-        >
-          Market Snapshot
+      {sentences.map((s, i) => (
+        <span key={i}>
+          {s}
+          {i < sentences.length - 1 ? " " : ""}
         </span>
-      </div>
-      <p className="text-sm leading-relaxed" style={{ color: "var(--text-primary)" }}>
-        {sentences.map((s, i) => (
-          <span key={i}>
-            {s}
-            {i < sentences.length - 1 ? " " : ""}
-          </span>
-        ))}
-      </p>
-    </div>
+      ))}
+    </p>
   );
 }

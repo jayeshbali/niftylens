@@ -203,19 +203,9 @@ export function OverviewTab({ snapshots, view, latest }: OverviewTabProps) {
   ];
 
   return (
-    <div className="p-4 md:p-6 space-y-6">
-      {/* Narrative + Watch — top of page, first thing visitor reads */}
-      <MarketNarrative latest={latest} prev={prev} />
-      <WatchList latest={latest} prev={prev} />
-
-      <InfoCard title={metricExplanations.overview.title} content={metricExplanations.overview} />
-
-      {/* Verdict Cards Grid */}
-      <div>
-        <h2 className="text-sm font-semibold text-text-secondary mb-3 uppercase tracking-wider">
-          Current Market Snapshot
-        </h2>
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+    <div className="p-4 md:p-6 space-y-5">
+      {/* 1. Verdict cards — hero element, immediately visible */}
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
           <VerdictCard
             label="PE Standalone Equiv"
             value={latest.niftyPeStandalone ? latest.niftyPeStandalone.toFixed(1) + "x" : "—"}
@@ -331,10 +321,15 @@ export function OverviewTab({ snapshots, view, latest }: OverviewTabProps) {
             signal={compositeSignal(latest.compositeScore)}
             context="10 signals synthesised. 7+ = historically preceded big rallies."
           />
-        </div>
       </div>
 
-      {/* Summary Table */}
+      {/* 2. Narrative — compact, below cards */}
+      <MarketNarrative latest={latest} prev={prev} />
+
+      {/* 3. What to Watch — compact aside */}
+      <WatchList latest={latest} prev={prev} />
+
+      {/* 4. Historical Summary Table */}
       <div>
         <h2 className="text-sm font-semibold text-text-secondary mb-3 uppercase tracking-wider">
           Historical Summary
