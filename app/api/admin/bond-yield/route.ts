@@ -18,6 +18,8 @@ import { NextResponse } from "next/server";
 import { db, schema } from "@/lib/db";
 import { eq } from "drizzle-orm";
 
+export const dynamic = "force-dynamic";
+
 const BOND_MIN = 3.0;
 const BOND_MAX = 14.0;
 

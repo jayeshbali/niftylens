@@ -18,6 +18,8 @@
 import { NextResponse } from "next/server";
 import { db, schema } from "@/lib/db";
 
+export const dynamic = "force-dynamic";
+
 const SIP_MIN = 1_000;   // ₹1,000 Cr — implausibly low
 const SIP_MAX = 100_000; // ₹1L Cr — implausibly high
 

@@ -25,6 +25,8 @@
 import { NextResponse } from "next/server";
 import { db, schema } from "@/lib/db";
 import type { NewMarketAnnualSnapshot, NewMarketMonthlyFlow } from "@/lib/db/schema";
+
+export const dynamic = "force-dynamic";
 import { eq, gte, lte, and, isNotNull, desc, sql } from "drizzle-orm";
 import { PE_ADJUSTMENT_FACTOR, PE_CONSOLIDATION_DATE } from "@/lib/constants";
 import { computeCompositeScore } from "@/lib/composite-score";

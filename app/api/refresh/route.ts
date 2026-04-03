@@ -24,6 +24,8 @@
 import { NextResponse } from "next/server";
 import { db, schema } from "@/lib/db";
 import type { NewMarketDailySnapshot } from "@/lib/db/schema";
+
+export const dynamic = "force-dynamic";
 import { PE_ADJUSTMENT_FACTOR, PE_CONSOLIDATION_DATE } from "@/lib/constants";
 import { fetchNSEData } from "@/lib/data-sources/nse";
 import { fetchNiftyPrice, fetchBondYield, fetchMSCIProxies } from "@/lib/data-sources/yahoo";
