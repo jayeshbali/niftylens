@@ -31,7 +31,7 @@ export function StalenessIndicator({ lastUpdated }: StalenessIndicatorProps) {
         {label} · {formattedDate}
       </span>
       <span className="text-text-muted hidden sm:block">
-        PE/PB/DY daily · flows monthly
+        Valuations: daily · FII/SIP data: monthly
       </span>
     </div>
   );
