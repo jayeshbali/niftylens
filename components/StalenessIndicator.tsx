@@ -9,14 +9,11 @@ export function StalenessIndicator({ lastUpdated }: StalenessIndicatorProps) {
   const diffDays = diffMs / (1000 * 60 * 60 * 24);
 
   let colorClass = "text-nifty-green";
-  let label = "Fresh";
 
   if (diffDays > 5) {
     colorClass = "text-nifty-red";
-    label = "Stale";
   } else if (diffDays > 2) {
     colorClass = "text-amber-accent";
-    label = "Aging";
   }
 
   const formattedDate = updatedDate.toLocaleDateString("en-IN", {
@@ -28,7 +25,7 @@ export function StalenessIndicator({ lastUpdated }: StalenessIndicatorProps) {
   return (
     <div className="flex flex-col gap-0.5 text-xs min-w-0">
       <span className={`font-medium ${colorClass} truncate`}>
-        {label} · {formattedDate}
+        Data as of {formattedDate}
       </span>
       <span className="text-text-muted hidden sm:block">
         Valuations: daily · FII/SIP data: monthly
