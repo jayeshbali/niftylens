@@ -4,6 +4,8 @@ import type { MarketSnapshot } from "@/types";
 import { VerdictCard } from "@/components/VerdictCard";
 import { DataTable } from "@/components/DataTable";
 import { InfoCard } from "@/components/InfoCard";
+import { MarketNarrative } from "@/components/MarketNarrative";
+import { WatchList } from "@/components/WatchList";
 import { metricExplanations } from "@/lib/content/metric-explanations";
 import { SNAPSHOT_YEARS } from "@/lib/constants";
 
@@ -35,9 +37,8 @@ function fmtFlow(v: number | null): string {
 function compositeSignal(score: number | null): string {
   if (score === null || score === undefined) return "—";
   if (score >= 7) return "Attractive";
-  if (score >= 5.5) return "Neutral";
-  if (score >= 4) return "Caution";
-  if (score >= 2.5) return "Rich";
+  if (score >= 4) return "Neutral";   // 4.0–6.9 = Neutral zone
+  if (score >= 2.5) return "Caution";
   return "Danger";
 }
 
@@ -45,7 +46,7 @@ function peSignal(pe: number | null): string {
   if (pe === null || pe === undefined) return "—";
   if (pe < 17) return "Attractive";
   if (pe <= 22) return "Neutral";
-  if (pe <= 24) return "Caution";
+  if (pe <= 24) return "Fair";        // 22–24 = fair / slightly above median
   return "Danger";
 }
 
@@ -69,7 +70,7 @@ function mcapGdpSignal(v: number | null): string | null {
   if (v === null || v === undefined) return null;
   if (v < 70) return "Attractive";
   if (v <= 90) return "Neutral";
-  if (v <= 110) return "Caution";
+  if (v <= 120) return "Above Avg";  // 90–120% = above avg, not danger
   return "Danger";
 }
 
@@ -80,6 +81,9 @@ export function OverviewTab({ snapshots, view, latest }: OverviewTabProps) {
       : snapshots;
 
   const years = displaySnapshots.map((s) => s.year);
+
+  // Previous annual row for YoY comparisons (SIP growth, etc.)
+  const prev = snapshots.length >= 2 ? snapshots[snapshots.length - 2] : null;
 
   // Build summary table rows
   const summaryRows = [
@@ -200,6 +204,10 @@ export function OverviewTab({ snapshots, view, latest }: OverviewTabProps) {
 
   return (
     <div className="p-4 md:p-6 space-y-6">
+      {/* Narrative + Watch — top of page, first thing visitor reads */}
+      <MarketNarrative latest={latest} prev={prev} />
+      <WatchList latest={latest} prev={prev} />
+
       <InfoCard title={metricExplanations.overview.title} content={metricExplanations.overview} />
 
       {/* Verdict Cards Grid */}
@@ -289,7 +297,15 @@ export function OverviewTab({ snapshots, view, latest }: OverviewTabProps) {
                 ? `₹${(latest.sipMonthlyAvg / 1000).toFixed(0)}K Cr`
                 : "—"
             }
-            signal="Neutral"
+            signal={
+              latest.sipMonthlyAvg !== null && latest.sipMonthlyAvg !== undefined
+                ? latest.sipMonthlyAvg >= 25000
+                  ? "Record High"
+                  : latest.sipMonthlyAvg >= 15000
+                  ? "Neutral"
+                  : "Caution"
+                : null
+            }
             context="Monthly SIP run-rate. Structural floor for markets. 8× growth since FY17."
           />
           <VerdictCard
@@ -299,7 +315,7 @@ export function OverviewTab({ snapshots, view, latest }: OverviewTabProps) {
               latest.fiiNet !== null && latest.fiiNet !== undefined
                 ? latest.fiiNet > 0
                   ? "Buy"
-                  : "Caution"
+                  : "Outflow"
                 : null
             }
             context="Net FII flows this fiscal year. Positive = foreign buying; negative = selling."

@@ -15,8 +15,8 @@ interface IndiaVsEMTabProps {
 function premiumCellClass(v: string | number | null | undefined): string {
   const raw = typeof v === "string" ? parseFloat(v) : (v as number | null);
   if (raw === null || raw === undefined || isNaN(raw as number)) return "";
-  if ((raw as number) < 20) return "cell-green";
-  if ((raw as number) <= 40) return "";
+  if ((raw as number) < 30) return "cell-green";
+  if ((raw as number) <= 45) return "";
   if ((raw as number) <= 65) return "cell-amber";
   return "cell-red";
 }
@@ -70,11 +70,11 @@ export function IndiaVsEMTab({ snapshots, view, latest }: IndiaVsEMTabProps) {
       <DataTable years={years} rows={rows} />
 
       <div className="flex flex-wrap gap-3 text-xs text-text-muted px-1">
-        <span className="cell-green px-2 py-0.5 rounded">Below 20% — Attractive</span>
+        <span className="cell-green px-2 py-0.5 rounded">Below 30% — Attractive</span>
         <span className="px-2 py-0.5 rounded" style={{ background: "var(--surface-2)", color: "var(--text-secondary)" }}>
-          20–40% — Fair
+          30–45% — Fair
         </span>
-        <span className="cell-amber px-2 py-0.5 rounded">40–65% — Caution</span>
+        <span className="cell-amber px-2 py-0.5 rounded">45–65% — Caution</span>
         <span className="cell-red px-2 py-0.5 rounded">Above 65% — Stretched</span>
       </div>
     </div>

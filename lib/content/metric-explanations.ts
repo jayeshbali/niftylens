@@ -12,11 +12,11 @@ export interface MetricExplanation {
 export const metricExplanations: Record<string, MetricExplanation> = {
   overview: {
     title: "NiftyLens \u2014 Indian Market Valuation Dashboard",
-    what: "Headline score card for Indian equity markets. 10 metrics synthesised into a single composite view.",
+    what: "10 independent valuation, flow, and context metrics layered for a multi-dimensional view of Indian equity markets.",
     whyUseful:
-      "This dashboard tracks March-end annual snapshots from 2000 to present. Data is updated daily for PE/PB/DY and monthly for flows. The composite score ranges from 0 (fully bearish) to 10 (fully bullish).",
+      "Switch between 5-Year Snapshot (key cycle markers) and Full 27 Years using the toggle above. Each metric tab has a plain-English explanation of what it measures, why it matters, and the specific gotcha to watch for. The Composite tab synthesises all signals into a scored framework with R\u00B2 validation against actual forward returns.",
     source: "Aggregated from NSE India, BSE, AMFI, NSDL, RBI, Trading Economics.",
-    gotcha: "Not investment advice. Use this as one input in your own research.",
+    gotcha: "No single metric tells the full story. When multiple signals agree, conviction increases. When they disagree, the dashboard helps you understand why.",
   },
 
   pe: {

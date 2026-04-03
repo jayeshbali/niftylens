@@ -104,7 +104,12 @@ export function PERatioTab({ snapshots, view, latest }: PERatioTabProps) {
           : s.midcapPeStandalone.toFixed(1);
       }),
       mono: true,
-      getCellClass: (_, year) => (POST_2021_YEARS.includes(year) ? "cell-adjusted" : ""),
+      getCellClass: (v, year) => {
+        const raw = typeof v === "string" ? parseFloat(v.replace("▲ ", "")) : (v as number | null);
+        const isAdj = POST_2021_YEARS.includes(year);
+        const baseClass = peCellClass(raw);
+        return isAdj ? `cell-adjusted ${baseClass}` : baseClass;
+      },
     },
     {
       label: `Median (${MIDCAP_PE_MEDIAN}x)`,
@@ -146,7 +151,12 @@ export function PERatioTab({ snapshots, view, latest }: PERatioTabProps) {
           : s.smallcapPeStandalone.toFixed(1);
       }),
       mono: true,
-      getCellClass: (_, year) => (POST_2021_YEARS.includes(year) ? "cell-adjusted" : ""),
+      getCellClass: (v, year) => {
+        const raw = typeof v === "string" ? parseFloat(v.replace("▲ ", "")) : (v as number | null);
+        const isAdj = POST_2021_YEARS.includes(year);
+        const baseClass = peCellClass(raw);
+        return isAdj ? `cell-adjusted ${baseClass}` : baseClass;
+      },
     },
     {
       label: `Median (${SMALLCAP_PE_MEDIAN}x)`,

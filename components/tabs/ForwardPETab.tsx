@@ -31,6 +31,23 @@ export function ForwardPETab({ snapshots, view, latest }: ForwardPETabProps) {
 
   const rows: TableRow[] = [
     {
+      label: "Trailing PE (Standalone)",
+      values: displaySnapshots.map((s) =>
+        s.niftyPeStandalone !== null && s.niftyPeStandalone !== undefined
+          ? s.niftyPeStandalone.toFixed(1)
+          : null
+      ),
+      mono: true,
+      getCellClass: (v) => {
+        const n = typeof v === "string" ? parseFloat(v) : (v as number | null);
+        if (n === null || n === undefined || isNaN(n as number)) return "";
+        if ((n as number) < 17) return "cell-green";
+        if ((n as number) <= 22) return "";
+        if ((n as number) <= 24) return "cell-amber";
+        return "cell-red";
+      },
+    },
+    {
       label: "Forward PE",
       values: displaySnapshots.map((s) =>
         s.forwardPe !== null && s.forwardPe !== undefined

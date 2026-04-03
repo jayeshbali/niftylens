@@ -1,6 +1,10 @@
 import Link from "next/link";
 import { Footer } from "@/components/Footer";
+import { db, schema } from "@/lib/db";
+import { desc } from "drizzle-orm";
 import type { Metadata } from "next";
+
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Methodology & Data Sources — NiftyLens",
@@ -221,7 +225,18 @@ const LIMITATIONS = [
 
 // ─── Page ────────────────────────────────────────────────────────────────────
 
-export default function MethodologyPage() {
+export default async function MethodologyPage() {
+  let lastUpdated: string | undefined;
+  try {
+    const [row] = await db
+      .select({ fetchedAt: schema.marketDailySnapshots.fetchedAt })
+      .from(schema.marketDailySnapshots)
+      .orderBy(desc(schema.marketDailySnapshots.id))
+      .limit(1);
+    lastUpdated = row?.fetchedAt ?? undefined;
+  } catch {
+    // non-fatal — footer will show "—" gracefully
+  }
   return (
     <div className="flex flex-col min-h-screen" style={{ background: "var(--bg)", color: "var(--text-primary)" }}>
       {/* Header */}
@@ -629,7 +644,7 @@ R²: Pearson correlation coefficient squared between composite score and 1-year
         </div>
       </main>
 
-      <Footer />
+      <Footer lastUpdated={lastUpdated} />
     </div>
   );
 }

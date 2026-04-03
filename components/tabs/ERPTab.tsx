@@ -13,11 +13,12 @@ interface ERPTabProps {
 }
 
 function erpCellClass(v: string | number | null | undefined): string {
-  const raw = typeof v === "string" ? parseFloat(v) : (v as number | null);
+  // Values come in as "+1.00%" or "-1.80%" — parseFloat handles leading sign correctly
+  const raw =
+    typeof v === "string" ? parseFloat(v) : (v as number | null);
   if (raw === null || raw === undefined || isNaN(raw as number)) return "";
-  if ((raw as number) > 3) return "cell-green";
-  if ((raw as number) >= 1) return "";
-  if ((raw as number) >= 0) return "cell-amber";
+  if ((raw as number) > 1) return "cell-green";
+  if ((raw as number) >= -0.5) return "cell-amber";
   return "cell-red";
 }
 
@@ -85,7 +86,7 @@ export function ERPTab({ snapshots, view, latest }: ERPTabProps) {
       getCellClass: erpCellClass,
     },
     {
-      label: "ERP Signal",
+      label: "Net Signal",
       values: displaySnapshots.map((s) => s.erpSignal ?? null),
       mono: false,
     },

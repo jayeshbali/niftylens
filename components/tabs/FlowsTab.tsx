@@ -71,6 +71,17 @@ export function FlowsTab({ snapshots, view, latest }: FlowsTabProps) {
       mono: true,
       getCellClass: sipCellClass,
     },
+    {
+      // Annualised SIP = monthly × 12 — shows the structural domestic demand floor per year
+      label: "Market Floor / yr (₹ Cr)",
+      values: displaySnapshots.map((s) =>
+        s.sipMonthlyAvg !== null && s.sipMonthlyAvg !== undefined
+          ? formatSip(s.sipMonthlyAvg * 12)
+          : null
+      ),
+      mono: true,
+      getCellClass: sipCellClass,
+    },
   ];
 
   return (

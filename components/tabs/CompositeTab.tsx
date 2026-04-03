@@ -35,9 +35,8 @@ function scoreCellClass(v: string | number | null | undefined): string {
   const n = typeof v === "string" ? parseFloat(v) : (v as number | null);
   if (n === null || n === undefined || isNaN(n as number)) return "";
   if ((n as number) >= 7) return "cell-green";
-  if ((n as number) >= 5.5) return "";
-  if ((n as number) >= 4) return "cell-amber";
-  if ((n as number) >= 2.5) return "cell-orange";
+  if ((n as number) >= 4) return "";       // 4–7 = Neutral (no tint)
+  if ((n as number) >= 2.5) return "cell-amber";
   return "cell-red";
 }
 
@@ -157,10 +156,9 @@ export function CompositeTab({ snapshots, view, latest }: CompositeTabProps) {
       <div className="flex flex-wrap gap-3 text-xs text-text-muted px-1">
         <span className="cell-green px-2 py-0.5 rounded">7.0+ — Attractive</span>
         <span className="px-2 py-0.5 rounded" style={{ background: "var(--surface-2)", color: "var(--text-secondary)" }}>
-          5.5–6.9 — Neutral
+          4.0–6.9 — Neutral
         </span>
-        <span className="cell-amber px-2 py-0.5 rounded">4.0–5.4 — Caution</span>
-        <span className="cell-orange px-2 py-0.5 rounded">2.5–3.9 — Rich</span>
+        <span className="cell-amber px-2 py-0.5 rounded">2.5–3.9 — Caution</span>
         <span className="cell-red px-2 py-0.5 rounded">Below 2.5 — Danger</span>
       </div>
     </div>

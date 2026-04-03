@@ -38,6 +38,7 @@ export const SIGNAL_GREEN = new Set([
   "Buy",
   "Strong Buy",
   "Undervalued",
+  "Record High",
 ]);
 
 export const SIGNAL_AMBER = new Set([
@@ -49,7 +50,7 @@ export const SIGNAL_AMBER = new Set([
   "Fair-Cheap",
 ]);
 
-export const SIGNAL_RED = new Set(["Danger", "Stretched"]);
+export const SIGNAL_RED = new Set(["Danger", "Stretched", "Outflow"]);
 
 // Neutral signals get slate styling
 export const SIGNAL_NEUTRAL = new Set([
