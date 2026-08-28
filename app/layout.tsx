@@ -20,12 +20,14 @@ export const metadata: Metadata = {
   metadataBase: new URL(
     process.env.NEXT_PUBLIC_SITE_URL ?? "https://niftylens.vercel.app"
   ),
-  title: "NiftyLens — Indian Market Valuation Dashboard",
+  title: "NiftyLens — India & US Market Valuation Dashboard",
   description:
-    "Track Indian equity market valuations: PE ratio, PB ratio, EPS growth, composite score, and more. 26-year annual snapshot data from NSE India.",
+    "Track Indian and US equity market valuations: PE ratio, PB ratio, EPS growth, composite score, and more. 26-year Indian and 1871–present US annual snapshot data.",
   keywords: [
     "Nifty 50",
+    "S&P 500",
     "India stock market",
+    "US stock market",
     "valuation",
     "PE ratio",
     "PB ratio",
@@ -34,18 +36,18 @@ export const metadata: Metadata = {
     "market dashboard",
   ],
   openGraph: {
-    title: "NiftyLens — Indian Market Valuation Dashboard",
+    title: "NiftyLens — India & US Market Valuation Dashboard",
     description:
-      "26 years of Indian equity valuation data. PE, PB, EPS, composite score and more.",
+      "Indian and US equity valuation data side by side. PE, PB, EPS, composite score and more.",
     type: "website",
     locale: "en_IN",
     images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: "NiftyLens Dashboard" }],
   },
   twitter: {
     card: "summary_large_image",
-    title: "NiftyLens — Indian Market Valuation Dashboard",
+    title: "NiftyLens — India & US Market Valuation Dashboard",
     description:
-      "26 years of Indian equity valuation data. PE, PB, EPS, composite score and more.",
+      "Indian and US equity valuation data side by side. PE, PB, EPS, composite score and more.",
     images: ["/opengraph-image"],
   },
 };

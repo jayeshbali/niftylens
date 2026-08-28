@@ -75,3 +75,72 @@ export interface MarketSnapshot {
   createdAt: string | null;
   updatedAt: string | null;
 }
+
+export interface UsMarketSnapshot {
+  id: number;
+  year: string;
+
+  // S&P 500
+  sp500Level: number | null;
+  sp500PeTrailing: number | null;
+  sp500PeMedian: number | null;
+  pePremiumDiscount: number | null;
+
+  // PB
+  sp500Pb: number | null;
+  pbMedian: number | null;
+  pbZone: string | null;
+
+  // Dividend Yield
+  dividendYield: number | null;
+  dyMedian: number | null;
+  dySignal: string | null;
+
+  // EPS
+  sp500Eps: number | null;
+  epsGrowthYoy: number | null;
+  eps3yCagr: number | null;
+
+  // Forward PE
+  forwardPe: number | null;
+  forwardPeZone: string | null;
+  impliedEpsGrowth: number | null;
+
+  // Shiller CAPE (bonus)
+  capeRatio: number | null;
+  capeMedian: number | null;
+
+  // US vs ex-US premium
+  usVsExUsPremium: number | null;
+  usVsExUsSignal: string | null;
+
+  // ERP
+  bondYield10y: number | null;
+  trailingEarningsYield: number | null;
+  forwardEarningsYield: number | null;
+  trailingErp: number | null;
+  forwardErp: number | null;
+  erpSignal: string | null;
+
+  // Flows
+  foreignNetFlow: number | null;
+  fundNetFlow: number | null;
+  fundFlowGrowthYoy: number | null;
+
+  // Mcap/GDP
+  mcapGdp: number | null;
+  mcapGdpZone: string | null;
+
+  // Composite
+  compositeScore: number | null;
+  compositeZone: string | null;
+
+  // 1Y Forward Return
+  sp5001yForwardReturn: number | null;
+
+  // Metadata
+  createdAt: string | null;
+  updatedAt: string | null;
+}
+
+export type MarketId = "india" | "us";

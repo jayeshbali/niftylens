@@ -1,16 +1,27 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { ALL_TABS, type TabId } from "@/lib/constants";
+import { ALL_TABS } from "@/lib/constants";
 
-interface TabNavProps {
-  activeTab: TabId;
-  onChange: (tab: TabId) => void;
+export interface TabGroup {
+  id: string;
+  label: string;
+  tabs: string[];
 }
 
-type GroupId = "overview" | "valuation" | "earnings" | "flows" | "macro" | "composite";
+export interface TabDef {
+  id: string;
+  label: string;
+}
 
-const GROUPS: { id: GroupId; label: string; tabs: TabId[] }[] = [
+interface TabNavProps {
+  activeTab: string;
+  onChange: (tab: string) => void;
+  tabs?: readonly TabDef[];
+  groups?: readonly TabGroup[];
+}
+
+const DEFAULT_GROUPS: TabGroup[] = [
   { id: "overview", label: "Overview", tabs: ["overview"] },
   { id: "valuation", label: "Valuation", tabs: ["pe", "pb", "dy", "forwardPe"] },
   { id: "earnings", label: "Earnings", tabs: ["eps", "erp"] },
@@ -19,27 +30,24 @@ const GROUPS: { id: GroupId; label: string; tabs: TabId[] }[] = [
   { id: "composite", label: "Composite", tabs: ["composite"] },
 ];
 
-const TAB_LABEL: Record<TabId, string> = Object.fromEntries(
-  ALL_TABS.map((t) => [t.id, t.label])
-) as Record<TabId, string>;
-
-function groupForTab(tabId: TabId): GroupId {
-  for (const g of GROUPS) {
-    if ((g.tabs as TabId[]).includes(tabId)) return g.id;
+function groupForTab(tabId: string, groups: readonly TabGroup[]): string {
+  for (const g of groups) {
+    if (g.tabs.includes(tabId)) return g.id;
   }
-  return "overview";
+  return groups[0]?.id ?? "overview";
 }
 
 interface GroupButtonProps {
-  group: (typeof GROUPS)[number];
+  group: TabGroup;
+  tabLabel: Record<string, string>;
   isActive: boolean;
   isOpen: boolean;
-  activeTab: TabId;
+  activeTab: string;
   onClick: () => void;
-  onTabSelect: (tab: TabId) => void;
+  onTabSelect: (tab: string) => void;
 }
 
-function GroupButton({ group, isActive, isOpen, activeTab, onClick, onTabSelect }: GroupButtonProps) {
+function GroupButton({ group, tabLabel, isActive, isOpen, activeTab, onClick, onTabSelect }: GroupButtonProps) {
   const hasMultiple = group.tabs.length > 1;
   const triggerRef = useRef<HTMLButtonElement>(null);
   const [dropdownPos, setDropdownPos] = useState<{ top: number; left: number } | null>(null);
@@ -107,7 +115,7 @@ function GroupButton({ group, isActive, isOpen, activeTab, onClick, onTabSelect 
                   (e.currentTarget as HTMLButtonElement).style.color = "var(--text-secondary)";
               }}
             >
-              {TAB_LABEL[tabId]}
+              {tabLabel[tabId] ?? tabId}
             </button>
           ))}
         </div>
@@ -116,10 +124,12 @@ function GroupButton({ group, isActive, isOpen, activeTab, onClick, onTabSelect 
   );
 }
 
-export function TabNav({ activeTab, onChange }: TabNavProps) {
-  const [openGroup, setOpenGroup] = useState<GroupId | null>(null);
+export function TabNav({ activeTab, onChange, tabs = ALL_TABS, groups = DEFAULT_GROUPS }: TabNavProps) {
+  const [openGroup, setOpenGroup] = useState<string | null>(null);
   const [flatMode, setFlatMode] = useState(false);
   const navRef = useRef<HTMLDivElement>(null);
+
+  const tabLabel: Record<string, string> = Object.fromEntries(tabs.map((t) => [t.id, t.label]));
 
   // Close on outside click or Escape
   useEffect(() => {
@@ -139,10 +149,10 @@ export function TabNav({ activeTab, onChange }: TabNavProps) {
     };
   }, []);
 
-  const activeGroup = groupForTab(activeTab);
-  const activeGroupDef = GROUPS.find((g) => g.id === activeGroup)!;
+  const activeGroup = groupForTab(activeTab, groups);
+  const activeGroupDef = groups.find((g) => g.id === activeGroup)!;
 
-  function handleGroupClick(group: (typeof GROUPS)[number]) {
+  function handleGroupClick(group: TabGroup) {
     if (group.tabs.length === 1) {
       onChange(group.tabs[0]);
       setOpenGroup(null);
@@ -151,7 +161,7 @@ export function TabNav({ activeTab, onChange }: TabNavProps) {
     }
   }
 
-  function handleTabSelect(tabId: TabId) {
+  function handleTabSelect(tabId: string) {
     onChange(tabId);
     setOpenGroup(null);
   }
@@ -171,7 +181,7 @@ export function TabNav({ activeTab, onChange }: TabNavProps) {
             >
               ← Groups
             </button>
-            {ALL_TABS.map((tab) => (
+            {tabs.map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => onChange(tab.id)}
@@ -183,10 +193,11 @@ export function TabNav({ activeTab, onChange }: TabNavProps) {
           </>
         ) : (
           <>
-            {GROUPS.map((group) => (
+            {groups.map((group) => (
               <GroupButton
                 key={group.id}
                 group={group}
+                tabLabel={tabLabel}
                 isActive={activeGroup === group.id}
                 isOpen={openGroup === group.id}
                 activeTab={activeTab}
@@ -223,7 +234,7 @@ export function TabNav({ activeTab, onChange }: TabNavProps) {
                 background: activeTab === tabId ? "rgba(34,211,238,0.08)" : "transparent",
               }}
             >
-              {TAB_LABEL[tabId]}
+              {tabLabel[tabId] ?? tabId}
             </button>
           ))}
         </div>

@@ -3,9 +3,16 @@
 interface ViewToggleProps {
   view: "snapshot" | "full";
   onChange: (v: "snapshot" | "full") => void;
+  snapshotLabel?: string;
+  fullLabel?: string;
 }
 
-export function ViewToggle({ view, onChange }: ViewToggleProps) {
+export function ViewToggle({
+  view,
+  onChange,
+  snapshotLabel = "5Y Snapshot",
+  fullLabel = "Full History",
+}: ViewToggleProps) {
   return (
     <div
       className="flex items-center gap-1 p-1 rounded-lg"
@@ -20,7 +27,7 @@ export function ViewToggle({ view, onChange }: ViewToggleProps) {
         }`}
         style={view === "snapshot" ? { background: "var(--surface)" } : undefined}
       >
-        5Y Snapshot
+        {snapshotLabel}
       </button>
       <button
         onClick={() => onChange("full")}
@@ -31,7 +38,7 @@ export function ViewToggle({ view, onChange }: ViewToggleProps) {
         }`}
         style={view === "full" ? { background: "var(--surface)" } : undefined}
       >
-        Full History
+        {fullLabel}
       </button>
     </div>
   );
