@@ -3,9 +3,9 @@ import type { MetricExplanation } from "./metric-explanations";
 export const metricExplanationsUS: Record<string, MetricExplanation> = {
   overview: {
     title: "NiftyLens — US Market Valuation Dashboard",
-    what: "The same 10-metric valuation, flow, and context framework built for the Indian market, applied to the S&P 500 — plus a bonus Risk & Sentiment tab with metrics the US market's data landscape supports that India's didn't.",
+    what: "The S&P 500 valuation framework, built entirely from metrics with a genuine free live data feed — no manual entry, no forced parity with India's exact metric set — plus a bonus Risk & Sentiment tab with metrics the US market's data landscape supports that India's didn't.",
     whyUseful:
-      "Switch between Snapshot and Full History (1871–present, the full Shiller dataset horizon) using the toggle above. Each tab explains what it measures, why it matters, and the specific gotcha to watch for. The Composite tab mirrors India's scoring structure for cross-market comparability.",
+      "Switch between Snapshot and Full History (1871–present, the full Shiller dataset horizon) using the toggle above. Each tab explains what it measures, why it matters, and the specific gotcha to watch for.",
     source: "Aggregated from multpl.com (Shiller dataset), FRED (Federal Reserve), World Bank, Yahoo Finance.",
     gotcha: "No single metric tells the full story. When multiple signals agree, conviction increases. When they disagree, the dashboard helps you understand why.",
   },
@@ -48,16 +48,6 @@ export const metricExplanationsUS: Record<string, MetricExplanation> = {
     source: "multpl.com (S&P 500 Earnings) — Shiller's “as reported” aggregate earnings series.",
   },
 
-  forwardPe: {
-    title: "Forward PE",
-    what: "Current price ÷ expected EPS over the next 12 months. What professional allocators actually use.",
-    whyUseful:
-      "Trailing PE is backward-looking. Forward PE prices in expected growth.",
-    gotcha:
-      "Sell-side consensus has a well-documented optimism bias. No free programmatic API exists for S&P 500 forward PE — this figure is updated manually from Yardeni Research's free weekly chartbook or FactSet's free Earnings Insight PDF, so it may lag.",
-    source: "Yardeni Research / FactSet Earnings Insight (free, weekly). Manually updated — marked stale if outdated.",
-  },
-
   usVsExUs: {
     title: "US vs Ex-US",
     what: "SPY PE ÷ ACWX (all-country ex-US) PE = the US valuation premium over the rest of the world's developed and emerging markets combined.",
@@ -72,20 +62,10 @@ export const metricExplanationsUS: Record<string, MetricExplanation> = {
     title: "Equity Risk Premium",
     what: "Earnings yield (1/PE) minus the 10-year Treasury yield. The extra return equities offer over the risk-free rate.",
     whyUseful:
-      "When Treasuries yield more than equity earnings, stocks face a valuation headwind. Forward ERP uses consensus earnings — more relevant for forward-looking allocation.",
+      "When Treasuries yield more than equity earnings, stocks face a valuation headwind.",
     gotcha:
       "The US 10-year Treasury yield (FRED DGS10) is an official, clean data series — a meaningfully more reliable risk-free rate than India's proxied bond yield. Consider also the real (TIPS) yield in the Risk & Sentiment tab for a fuller picture.",
     source: "Derived — Earnings yield from multpl.com PE, Treasury yield from FRED (DGS10).",
-  },
-
-  flows: {
-    title: "Foreign / Fund Flows",
-    what: "Net foreign purchases of US securities (Treasury TIC data) + net long-term equity/bond fund flows (ICI). Supply-demand mechanics behind price action — the US analogue of India's FII/DII and SIP.",
-    whyUseful:
-      "Sustained foreign buying and retail fund inflows create a demand floor; reversals often coincide with volatility spikes.",
-    gotcha:
-      "Neither Treasury TIC nor ICI publish a clean free programmatic API — figures are entered manually here, with the same lag/effort tradeoff as India's SIP data.",
-    source: "Treasury TIC (home.treasury.gov/data/treasury-international-capital-tic-system) + ICI (ici.org/research). Monthly, manual entry.",
   },
 
   mcapGdp: {
@@ -100,21 +80,21 @@ export const metricExplanationsUS: Record<string, MetricExplanation> = {
 
   riskSentiment: {
     title: "Risk & Sentiment",
-    what: "Bonus metrics with no direct India equivalent, made possible by the depth of free US public data: Shiller CAPE, VIX, high-yield credit spreads, the 10Y–2Y yield curve, real (TIPS) yields, AAII investor sentiment, FINRA margin debt, and S&P 500 top-10 concentration.",
+    what: "Bonus metrics with no direct India equivalent, made possible by the depth of free US public data: Shiller CAPE, VIX, high-yield credit spreads, the 10Y–2Y yield curve, and real (TIPS) yields — all fully automated, no manual entry.",
     whyUseful:
-      "These add texture that trailing/forward PE alone miss: CAPE smooths the earnings cycle, VIX and credit spreads gauge market stress, the yield curve is a well-studied recession signal, and sentiment/margin-debt/concentration flag late-cycle excess.",
+      "These add texture that trailing PE alone misses: CAPE smooths the earnings cycle, VIX and credit spreads gauge market stress, and the yield curve is a well-studied recession signal.",
     gotcha:
-      "Informational only — none of these feed into the Composite Score, to keep that score directly comparable to India's 10-signal structure. AAII sentiment, margin debt, and concentration have no free API and are entered manually.",
-    source: "multpl.com (CAPE), Yahoo Finance (VIX), FRED (credit spread, yield curve, real yield), AAII/FINRA/S&P (manual entry).",
+      "Informational only — none of these feed into the Composite Score.",
+    source: "multpl.com (CAPE), Yahoo Finance (VIX), FRED (credit spread, yield curve, real yield).",
   },
 
   composite: {
     title: "Composite Score",
-    what: "10 metrics synthesised into a 0–10 score, mirroring India's composite structure signal-for-signal for cross-market comparability. 1 point per bullish signal, 0.5 neutral, 0 bearish.",
+    what: "7 metrics synthesised into a 0–10 score — every one of them a genuinely automated, free-data-fed signal. 1 point per bullish signal, 0.5 neutral, 0 bearish.",
     whyUseful:
-      "Lets you compare “how stretched is the US” against “how stretched is India” on the same scale and methodology.",
+      "A quick read on how stretched the US market looks, built only from metrics with real live data behind them.",
     gotcha:
-      "Thresholds are anchored to the modern (post-1990s) valuation regime, not the full 1871–present median — see /methodology for why. Bonus Risk & Sentiment metrics are excluded from this score by design.",
+      "Thresholds are anchored to the modern (post-1990s) valuation regime, not the full 1871–present median — see /methodology for why. Bonus Risk & Sentiment metrics are excluded from this score by design. No longer directly comparable to India's 10-signal score, by design — see /methodology.",
     source: "Derived from all other tabs. Scoring rules documented in full at /methodology.",
   },
 };

@@ -15,8 +15,8 @@ import { drizzle } from "drizzle-orm/libsql";
 import { createClient } from "@libsql/client";
 import { usMarketAnnualSnapshots } from "../lib/db/schema";
 import { fetchMultplHistory, type MultplSeries } from "../lib/data-sources/us/multpl";
-import { fetchFredHistory } from "../lib/data-sources/us/fred";
-import { fetchMcapGdpHistory } from "../lib/data-sources/us/world-bank";
+import { fetchFredHistory } from "../lib/data-sources/fred";
+import { fetchMcapGdpHistory } from "../lib/data-sources/world-bank";
 import { computeUsCompositeScore } from "../lib/composite-score-us";
 import { SP500_PE_MEDIAN } from "../lib/constants-us";
 import { writeFileSync, mkdirSync } from "fs";
@@ -95,7 +95,7 @@ async function seed() {
   const bondByYear = bondHist.observations ? firstJanValuePerYear(bondHist.observations) : new Map();
 
   console.log("Fetching World Bank Mcap/GDP history...");
-  const mcapGdpHist = await fetchMcapGdpHistory();
+  const mcapGdpHist = await fetchMcapGdpHistory("US");
   if (mcapGdpHist.error) console.warn(`  ⚠ Mcap/GDP: ${mcapGdpHist.error}`);
   else console.log(`  ✓ Mcap/GDP: ${mcapGdpHist.observations!.length} years`);
   const mcapGdpByYear = new Map((mcapGdpHist.observations ?? []).map((o) => [o.year, o.value]));
@@ -155,20 +155,16 @@ async function seed() {
         ? round2(((sp500PeTrailing - SP500_PE_MEDIAN) / SP500_PE_MEDIAN) * 100)
         : null;
 
-    // No historical data for forward PE, US-vs-ex-US premium (ETFs didn't
-    // exist pre-2000s), or foreign/fund flows this far back — null, which
-    // computeUsCompositeScore treats as neutral (0.5) per its s3() default.
+    // No historical US-vs-ex-US premium this far back (SPY/ACWX didn't exist
+    // pre-2000s) — null, which computeUsCompositeScore treats as neutral
+    // (0.5) per its s3() default.
     const { score: compositeScore, zone: compositeZone } = computeUsCompositeScore({
       sp500PeTrailing,
       sp500Pb,
       dividendYield,
       epsGrowthYoy,
-      forwardPe: null,
       usVsExUsPremium: null,
       trailingErp,
-      foreignNetFlowAnnual: null,
-      fundNetFlowAnnual: null,
-      fundFlowGrowthYoy: null,
       mcapGdp,
     });
 

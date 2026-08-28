@@ -7,6 +7,10 @@
     {
       "path": "/api/refresh-us",
       "schedule": "5 13 * * *"
+    },
+    {
+      "path": "/api/refresh-intl",
+      "schedule": "10 13 * * *"
     }
   ]
 }

@@ -15,7 +15,7 @@ function fmt(v: number | null, decimals = 1): string {
 export function MarketNarrativeUS({ latest }: MarketNarrativeUSProps) {
   const pe = latest.sp500PeTrailing;
   const pb = latest.sp500Pb;
-  const forwardPe = latest.forwardPe;
+  const cape = latest.capeRatio;
   const trailingErp = latest.trailingErp;
   const score = latest.compositeScore;
   const zone = latest.compositeZone;
@@ -32,12 +32,12 @@ export function MarketNarrativeUS({ latest }: MarketNarrativeUSProps) {
       : `US large-cap equities are ${peLabel}.`;
 
   let fwdStr = "";
-  if (forwardPe !== null && pe !== null) {
-    let fwdLabel: string;
-    if (forwardPe < 17) fwdLabel = "more attractive on a forward basis";
-    else if (forwardPe <= 21) fwdLabel = "similar on a forward basis";
-    else fwdLabel = "less attractive on a forward basis";
-    fwdStr = `They look ${fwdLabel} (forward PE ~${fmt(forwardPe)}x).`;
+  if (cape !== null && pe !== null) {
+    const gap = cape - pe;
+    fwdStr =
+      gap > 10
+        ? `The Shiller CAPE (${fmt(cape)}x) reads notably richer than trailing PE — the earnings-smoothing lens sees more froth.`
+        : `Shiller CAPE (${fmt(cape)}x) is broadly in line with trailing PE, not flagging extra froth.`;
   }
 
   const tensions: string[] = [];

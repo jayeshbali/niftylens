@@ -143,4 +143,4 @@ export interface UsMarketSnapshot {
   updatedAt: string | null;
 }
 
-export type MarketId = "india" | "us";
+export type MarketId = "india" | "us" | "china" | "japan" | "germany" | "uk" | "france";

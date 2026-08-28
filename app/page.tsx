@@ -1,8 +1,10 @@
 import { db, schema } from "@/lib/db";
-import { asc, desc } from "drizzle-orm";
+import { asc, desc, eq } from "drizzle-orm";
 import { Dashboard } from "@/components/Dashboard";
 import { Footer } from "@/components/Footer";
 import type { MarketSnapshot, UsMarketSnapshot } from "@/types";
+import type { IntlMarketSnapshot } from "@/lib/db/schema";
+import { INTL_MARKETS } from "@/lib/constants-intl";
 
 export const dynamic = "force-dynamic";
 
@@ -32,7 +34,6 @@ export default async function Home() {
   let usSnapshots: UsMarketSnapshot[] = [];
   let usLastUpdated = new Date().toISOString();
   let usLatestDaily = null;
-  let usLatestMonthly = null;
   try {
     const usRows = await db
       .select()
@@ -53,21 +54,35 @@ export default async function Home() {
       .limit(1);
     usLastUpdated = usDaily?.fetchedAt ?? usLastUpdated;
     usLatestDaily = usDaily ?? null;
-
-    const [usMonthly] = await db
-      .select({
-        aaiiBullishPct: schema.usMarketMonthlyFlows.aaiiBullishPct,
-        aaiiBearishPct: schema.usMarketMonthlyFlows.aaiiBearishPct,
-        aaiiNeutralPct: schema.usMarketMonthlyFlows.aaiiNeutralPct,
-        marginDebtBalance: schema.usMarketMonthlyFlows.marginDebtBalance,
-        top10ConcentrationPct: schema.usMarketMonthlyFlows.top10ConcentrationPct,
-      })
-      .from(schema.usMarketMonthlyFlows)
-      .orderBy(desc(schema.usMarketMonthlyFlows.id))
-      .limit(1);
-    usLatestMonthly = usMonthly ?? null;
   } catch {
     // US tables not migrated yet — dashboard shows an empty state for the US tab.
+  }
+
+  // International markets (China, Japan, Germany, UK, France) — small
+  // tables, fine to fetch all up front per market like India/US already do.
+  const intlSnapshots: Record<string, IntlMarketSnapshot[]> = {};
+  const intlLatestIndexLevel: Record<string, number | null> = {};
+  let intlLastUpdated = new Date().toISOString();
+  try {
+    for (const m of INTL_MARKETS) {
+      const marketRows = await db
+        .select()
+        .from(schema.intlMarketSnapshots)
+        .where(eq(schema.intlMarketSnapshots.market, m.id))
+        .orderBy(asc(schema.intlMarketSnapshots.period));
+      intlSnapshots[m.id] = marketRows;
+
+      const [dailyRow] = await db
+        .select({ indexLevel: schema.intlMarketDailySnapshots.indexLevel, fetchedAt: schema.intlMarketDailySnapshots.fetchedAt })
+        .from(schema.intlMarketDailySnapshots)
+        .where(eq(schema.intlMarketDailySnapshots.market, m.id))
+        .orderBy(desc(schema.intlMarketDailySnapshots.id))
+        .limit(1);
+      intlLatestIndexLevel[m.id] = dailyRow?.indexLevel ?? null;
+      if (dailyRow?.fetchedAt) intlLastUpdated = dailyRow.fetchedAt;
+    }
+  } catch {
+    // Intl tables not migrated yet — dashboard shows an empty state.
   }
 
   return (
@@ -81,7 +96,9 @@ export default async function Home() {
         usSnapshots={usSnapshots}
         usLastUpdated={usLastUpdated}
         usLatestDaily={usLatestDaily}
-        usLatestMonthly={usLatestMonthly}
+        intlSnapshots={intlSnapshots}
+        intlLatestIndexLevel={intlLatestIndexLevel}
+        intlLastUpdated={intlLastUpdated}
       />
       <Footer lastUpdated={lastUpdated} />
     </div>

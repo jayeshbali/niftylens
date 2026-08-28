@@ -1,16 +1,15 @@
 /**
- * US Monthly/Annual Snapshot — mirrors app/api/refresh-monthly/route.ts.
+ * US Annual Snapshot — mirrors app/api/refresh-monthly/route.ts's annual step.
  *
  * POST /api/refresh-us-monthly
  * Body (optional): { "yearMonth": "2026-12" }
  *   yearMonth defaults to the previous calendar month.
  *
- * Unlike India, there's no daily foreign/fund-flow feed to sum here —
- * foreignNetMonthly/fundNetMonthly are entered directly via
- * POST /api/admin/us-flows (Treasury TIC / ICI have no free API). This
- * route's job is: when yearMonth is December, compute the annual
+ * Only does anything when yearMonth is December: computes the annual
  * (calendar-year) snapshot — EPS growth, ERP, Mcap/GDP (World Bank),
- * composite score — and upsert it.
+ * composite score — from the last daily snapshot of that December, and
+ * upserts it. (Forward PE and foreign/fund flows were dropped — no free
+ * data source — so there's no monthly aggregation step left to do.)
  *
  * Protected by ADMIN_SECRET / CRON_SECRET env var.
  */
@@ -23,7 +22,7 @@ export const dynamic = "force-dynamic";
 import { eq, gte, lte, and, desc } from "drizzle-orm";
 import { SP500_PE_MEDIAN, SP500_PB_MEDIAN, SP500_DY_MEDIAN, CAPE_MEDIAN } from "@/lib/constants-us";
 import { computeUsCompositeScore } from "@/lib/composite-score-us";
-import { fetchMcapGdpLatest } from "@/lib/data-sources/us/world-bank";
+import { fetchMcapGdpLatest } from "@/lib/data-sources/world-bank";
 
 function isAuthorized(request: Request): boolean {
   const secret = process.env.ADMIN_SECRET ?? process.env.CRON_SECRET;
@@ -80,28 +79,6 @@ async function computeAndUpsertAnnualSnapshot(year: string): Promise<Record<stri
     return { error: `No daily snapshots found for December ${year}` };
   }
 
-  // ── Aggregate calendar-year flows ──────────────────────────────────────────
-  const fyMonthly = await db
-    .select({
-      foreignNetMonthly: schema.usMarketMonthlyFlows.foreignNetMonthly,
-      fundNetMonthly: schema.usMarketMonthlyFlows.fundNetMonthly,
-    })
-    .from(schema.usMarketMonthlyFlows)
-    .where(
-      and(
-        gte(schema.usMarketMonthlyFlows.yearMonth, `${year}-01`),
-        lte(schema.usMarketMonthlyFlows.yearMonth, `${year}-12`)
-      )
-    );
-
-  const foreignNetAnnual = fyMonthly.some((r) => r.foreignNetMonthly !== null)
-    ? round2(fyMonthly.reduce((s, r) => s + (r.foreignNetMonthly ?? 0), 0))
-    : null;
-  const fundNetAnnual = fyMonthly.some((r) => r.fundNetMonthly !== null)
-    ? round2(fyMonthly.reduce((s, r) => s + (r.fundNetMonthly ?? 0), 0))
-    : null;
-
-  // ── Raw from daily snapshot ─────────────────────────────────────────────────
   const {
     sp500Level, sp500PeTrailing, sp500Pb, dividendYield, sp500Eps,
     capeRatio, bondYield10y, usVsExUsPremium,
@@ -110,7 +87,7 @@ async function computeAndUpsertAnnualSnapshot(year: string): Promise<Record<stri
   // ── EPS growth — look up previous year's annual row ────────────────────────
   const prevYear = String(parseInt(year) - 1);
   const [prevAnnual] = await db
-    .select({ sp500Eps: schema.usMarketAnnualSnapshots.sp500Eps, fundNetFlow: schema.usMarketAnnualSnapshots.fundNetFlow })
+    .select({ sp500Eps: schema.usMarketAnnualSnapshots.sp500Eps })
     .from(schema.usMarketAnnualSnapshots)
     .where(eq(schema.usMarketAnnualSnapshots.year, prevYear))
     .limit(1);
@@ -134,12 +111,6 @@ async function computeAndUpsertAnnualSnapshot(year: string): Promise<Record<stri
       ? round2(((sp500Eps / prev3Eps) ** (1 / 3) - 1) * 100)
       : null;
 
-  const prevFundNet = prevAnnual?.fundNetFlow ?? null;
-  const fundFlowGrowthYoy =
-    fundNetAnnual !== null && prevFundNet !== null && prevFundNet > 0
-      ? round2(((fundNetAnnual - prevFundNet) / prevFundNet) * 100)
-      : null;
-
   // ── ERP ─────────────────────────────────────────────────────────────────────
   const trailingEarningsYield =
     sp500PeTrailing !== null && sp500PeTrailing > 0
@@ -157,23 +128,8 @@ async function computeAndUpsertAnnualSnapshot(year: string): Promise<Record<stri
       ? round2(((sp500PeTrailing - SP500_PE_MEDIAN) / SP500_PE_MEDIAN) * 100)
       : null;
 
-  // ── Forward PE — carried forward from last annual row (manual entry) ───────
-  const [lastAnnual] = await db
-    .select({ forwardPe: schema.usMarketAnnualSnapshots.forwardPe })
-    .from(schema.usMarketAnnualSnapshots)
-    .orderBy(desc(schema.usMarketAnnualSnapshots.id))
-    .limit(1);
-
-  const forwardPe = lastAnnual?.forwardPe ?? null;
-  const forwardEarningsYield =
-    forwardPe !== null && forwardPe > 0 ? round2((1 / forwardPe) * 100) : null;
-  const forwardErp =
-    forwardEarningsYield !== null && bondYield10y !== null
-      ? round2(+(forwardEarningsYield - bondYield10y).toFixed(2))
-      : null;
-
   // ── Mcap/GDP — World Bank (fresh fetch; annual-frequency official data) ────
-  const mcapGdpRes = await fetchMcapGdpLatest();
+  const mcapGdpRes = await fetchMcapGdpLatest("US");
   const mcapGdp = mcapGdpRes.latest?.value ?? null;
 
   // ── Composite score ─────────────────────────────────────────────────────────
@@ -182,12 +138,8 @@ async function computeAndUpsertAnnualSnapshot(year: string): Promise<Record<stri
     sp500Pb,
     dividendYield,
     epsGrowthYoy,
-    forwardPe,
     usVsExUsPremium,
     trailingErp,
-    foreignNetFlowAnnual: foreignNetAnnual,
-    fundNetFlowAnnual: fundNetAnnual,
-    fundFlowGrowthYoy,
     mcapGdp,
   });
 
@@ -206,10 +158,6 @@ async function computeAndUpsertAnnualSnapshot(year: string): Promise<Record<stri
 
   const erpSignal = trailingErp !== null
     ? trailingErp > 1 ? "Attractive" : trailingErp >= -0.5 ? "Bonds Competitive" : "Danger"
-    : null;
-
-  const forwardPeZone = forwardPe !== null
-    ? forwardPe < 17 ? "Attractive" : forwardPe <= 21 ? "Fair" : "Expensive"
     : null;
 
   const mcapGdpZone = mcapGdp !== null
@@ -236,10 +184,6 @@ async function computeAndUpsertAnnualSnapshot(year: string): Promise<Record<stri
     epsGrowthYoy,
     eps3yCagr,
 
-    forwardPe,
-    forwardPeZone,
-    impliedEpsGrowth: null,
-
     capeRatio,
     capeMedian: CAPE_MEDIAN,
 
@@ -248,14 +192,8 @@ async function computeAndUpsertAnnualSnapshot(year: string): Promise<Record<stri
 
     bondYield10y,
     trailingEarningsYield,
-    forwardEarningsYield,
     trailingErp,
-    forwardErp,
     erpSignal,
-
-    foreignNetFlow: foreignNetAnnual,
-    fundNetFlow: fundNetAnnual,
-    fundFlowGrowthYoy,
 
     mcapGdp,
     mcapGdpZone,
@@ -276,16 +214,7 @@ async function computeAndUpsertAnnualSnapshot(year: string): Promise<Record<stri
 
   console.log(`[us-annual] ${year} upserted — PE=${sp500PeTrailing} composite=${compositeScore} (${compositeZone})`);
 
-  return {
-    year,
-    sp500Level,
-    sp500PeTrailing,
-    compositeScore,
-    compositeZone,
-    mcapGdp,
-    foreignNetAnnual,
-    fundNetAnnual,
-  };
+  return { year, sp500Level, sp500PeTrailing, compositeScore, compositeZone, mcapGdp };
 }
 
 function resolveYearMonth(raw: unknown): string | null {

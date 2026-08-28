@@ -9,6 +9,8 @@
     "db:seed": "bun scripts/seed-historical.ts",
     "db:seed:us": "bun scripts/seed-historical-us.ts",
     "db:migrate:us": "bun scripts/migrate-add-us-tables.ts",
+    "db:seed:intl": "bun scripts/seed-historical-intl.ts",
+    "db:migrate:intl": "bun scripts/migrate-add-intl-tables.ts",
     "db:generate": "drizzle-kit generate",
     "db:push": "drizzle-kit push"
   },

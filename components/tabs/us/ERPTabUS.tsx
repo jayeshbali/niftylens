@@ -40,24 +40,9 @@ export function ERPTabUS({ snapshots, view, latest }: ERPTabUSProps) {
       mono: true,
     },
     {
-      label: "Forward Earnings Yield %",
-      values: displaySnapshots.map((s) =>
-        s.forwardEarningsYield !== null ? s.forwardEarningsYield.toFixed(2) + "%" : null
-      ),
-      mono: true,
-    },
-    {
       label: "Trailing ERP %",
       values: displaySnapshots.map((s) =>
         s.trailingErp !== null ? (s.trailingErp >= 0 ? "+" : "") + s.trailingErp.toFixed(2) + "%" : null
-      ),
-      mono: true,
-      getCellClass: erpCellClass,
-    },
-    {
-      label: "Forward ERP %",
-      values: displaySnapshots.map((s) =>
-        s.forwardErp !== null ? (s.forwardErp >= 0 ? "+" : "") + s.forwardErp.toFixed(2) + "%" : null
       ),
       mono: true,
       getCellClass: erpCellClass,

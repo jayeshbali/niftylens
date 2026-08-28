@@ -2,14 +2,13 @@
  * World Bank Open Data — free, no API key, no scraping.
  * Indicator CM.MKT.LCAP.GD.ZS: "Market capitalization of listed domestic
  * companies (% of GDP)" — the Mcap/GDP ("Buffett Indicator") ratio, published
- * pre-computed, annually, with a several-month lag.
+ * pre-computed, annually, with a several-month lag. Works for any country
+ * via its ISO alpha-2 code (verified live for US, CN, JP, DE, GB, FR).
  *
- * Chosen over reconstructing Wilshire 5000 ÷ GDP because FRED discontinued
- * its Wilshire index series in June 2024 — see fred.ts's note.
+ * Originally US-only (chosen over reconstructing Wilshire 5000 ÷ GDP because
+ * FRED discontinued its Wilshire index series in June 2024 — see fred.ts's
+ * note); generalized when adding the 5 international markets.
  */
-
-const WB_URL =
-  "https://api.worldbank.org/v2/country/US/indicator/CM.MKT.LCAP.GD.ZS?format=json&per_page=200";
 
 export interface McapGdpObservation {
   year: string; // "2025"
@@ -27,9 +26,10 @@ interface WBRow {
   value: number | null;
 }
 
-export async function fetchMcapGdpHistory(): Promise<McapGdpResult> {
+export async function fetchMcapGdpHistory(countryCode: string): Promise<McapGdpResult> {
   try {
-    const res = await fetch(WB_URL, { cache: "no-store" });
+    const url = `https://api.worldbank.org/v2/country/${countryCode}/indicator/CM.MKT.LCAP.GD.ZS?format=json&per_page=200`;
+    const res = await fetch(url, { cache: "no-store" });
     if (!res.ok) return { error: `HTTP ${res.status}` };
 
     const data = await res.json();
@@ -49,8 +49,8 @@ export async function fetchMcapGdpHistory(): Promise<McapGdpResult> {
   }
 }
 
-export async function fetchMcapGdpLatest(): Promise<McapGdpResult> {
-  const history = await fetchMcapGdpHistory();
+export async function fetchMcapGdpLatest(countryCode: string): Promise<McapGdpResult> {
+  const history = await fetchMcapGdpHistory(countryCode);
   if (history.error || !history.observations?.length) return history;
   return {
     latest: history.observations[history.observations.length - 1],

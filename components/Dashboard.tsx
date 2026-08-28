@@ -2,12 +2,14 @@
 
 import { useState } from "react";
 import type { MarketSnapshot, UsMarketSnapshot, MarketId } from "@/types";
-import type { UsMarketDailySnapshot, UsMarketMonthlyFlow } from "@/lib/db/schema";
+import type { UsMarketDailySnapshot, IntlMarketSnapshot } from "@/lib/db/schema";
 import { type TabId } from "@/lib/constants";
 import { ALL_TABS_US, GROUPS_US, type TabIdUS } from "@/lib/constants-us";
+import { INTL_MARKETS, getIntlMarket } from "@/lib/constants-intl";
 import { TabNav } from "@/components/TabNav";
 import { ViewToggle } from "@/components/ViewToggle";
 import { StalenessIndicator } from "@/components/StalenessIndicator";
+import { IntlMarketView } from "@/components/IntlMarketView";
 
 // India tab components
 import { OverviewTab } from "@/components/tabs/OverviewTab";
@@ -28,10 +30,8 @@ import { PERatioTabUS } from "@/components/tabs/us/PERatioTabUS";
 import { PBRatioTabUS } from "@/components/tabs/us/PBRatioTabUS";
 import { DividendYieldTabUS } from "@/components/tabs/us/DividendYieldTabUS";
 import { EPSGrowthTabUS } from "@/components/tabs/us/EPSGrowthTabUS";
-import { ForwardPETabUS } from "@/components/tabs/us/ForwardPETabUS";
 import { UsVsExUsTabUS } from "@/components/tabs/us/UsVsExUsTabUS";
 import { ERPTabUS } from "@/components/tabs/us/ERPTabUS";
-import { FlowsTabUS } from "@/components/tabs/us/FlowsTabUS";
 import { McapGDPTabUS } from "@/components/tabs/us/McapGDPTabUS";
 import { RiskSentimentTabUS } from "@/components/tabs/us/RiskSentimentTabUS";
 import { CompositeTabUS } from "@/components/tabs/us/CompositeTabUS";
@@ -42,29 +42,36 @@ interface DashboardProps {
   usSnapshots: UsMarketSnapshot[];
   usLastUpdated: string;
   usLatestDaily: Pick<UsMarketDailySnapshot, "vix" | "hySpread" | "yieldCurve10y2y" | "realYield10y"> | null;
-  usLatestMonthly: Pick<
-    UsMarketMonthlyFlow,
-    "aaiiBullishPct" | "aaiiBearishPct" | "aaiiNeutralPct" | "marginDebtBalance" | "top10ConcentrationPct"
-  > | null;
+  intlSnapshots: Record<string, IntlMarketSnapshot[]>;
+  intlLatestIndexLevel: Record<string, number | null>;
+  intlLastUpdated: string;
 }
 
+const RICH_MARKETS: MarketId[] = ["india", "us"];
+
 function MarketSwitcher({ market, onChange }: { market: MarketId; onChange: (m: MarketId) => void }) {
+  const options: { id: MarketId; flag: string; label: string }[] = [
+    { id: "india", flag: "🇮🇳", label: "India" },
+    { id: "us", flag: "🇺🇸", label: "US" },
+    ...INTL_MARKETS.map((m) => ({ id: m.id as MarketId, flag: m.flag, label: m.label })),
+  ];
+
   return (
     <div
-      className="flex items-center gap-1 p-1 rounded-lg"
+      className="flex items-center gap-1 p-1 rounded-lg overflow-x-auto scrollbar-none"
       style={{ background: "var(--surface-2)", border: "1px solid var(--border)" }}
     >
-      {(["india", "us"] as MarketId[]).map((m) => (
+      {options.map((o) => (
         <button
-          key={m}
-          onClick={() => onChange(m)}
-          className="px-3 py-1.5 text-xs font-medium rounded-md transition-all"
+          key={o.id}
+          onClick={() => onChange(o.id)}
+          className="px-2.5 py-1.5 text-xs font-medium rounded-md transition-all whitespace-nowrap shrink-0"
           style={{
-            background: market === m ? "var(--surface)" : "transparent",
-            color: market === m ? "var(--cyan)" : "var(--text-secondary)",
+            background: market === o.id ? "var(--surface)" : "transparent",
+            color: market === o.id ? "var(--cyan)" : "var(--text-secondary)",
           }}
         >
-          {m === "india" ? "🇮🇳 India" : "🇺🇸 US"}
+          {o.flag} {o.label}
         </button>
       ))}
     </div>
@@ -77,7 +84,9 @@ export function Dashboard({
   usSnapshots,
   usLastUpdated,
   usLatestDaily,
-  usLatestMonthly,
+  intlSnapshots,
+  intlLatestIndexLevel,
+  intlLastUpdated,
 }: DashboardProps) {
   const [market, setMarket] = useState<MarketId>("india");
   const [activeTab, setActiveTab] = useState<TabId>("overview");
@@ -93,7 +102,6 @@ export function Dashboard({
     view,
     latest: usLatest,
     latestDaily: usLatestDaily,
-    latestMonthly: usLatestMonthly,
   };
 
   function renderIndiaTab() {
@@ -127,16 +135,35 @@ export function Dashboard({
       case "pb": return <PBRatioTabUS {...tabPropsUS} />;
       case "dy": return <DividendYieldTabUS {...tabPropsUS} />;
       case "eps": return <EPSGrowthTabUS {...tabPropsUS} />;
-      case "forwardPe": return <ForwardPETabUS {...tabPropsUS} />;
       case "usVsExUs": return <UsVsExUsTabUS {...tabPropsUS} />;
       case "erp": return <ERPTabUS {...tabPropsUS} />;
-      case "flows": return <FlowsTabUS {...tabPropsUS} />;
       case "mcapGdp": return <McapGDPTabUS {...tabPropsUS} />;
       case "riskSentiment": return <RiskSentimentTabUS {...tabPropsUS} />;
       case "composite": return <CompositeTabUS {...tabPropsUS} />;
       default: return <OverviewTabUS {...tabPropsUS} />;
     }
   }
+
+  function renderIntlView() {
+    const config = getIntlMarket(market);
+    if (!config) return null;
+    return (
+      <IntlMarketView
+        config={config}
+        snapshots={intlSnapshots[market] ?? []}
+        latestIndexLevel={intlLatestIndexLevel[market] ?? null}
+      />
+    );
+  }
+
+  const isRich = RICH_MARKETS.includes(market);
+  const marketLabel =
+    market === "india" ? "Indian Market Valuation Dashboard"
+    : market === "us" ? "US Market Valuation Dashboard"
+    : `${getIntlMarket(market)?.label ?? ""} Market Valuation`;
+
+  const staleness =
+    market === "india" ? lastUpdated : market === "us" ? usLastUpdated : intlLastUpdated;
 
   return (
     <div className="flex flex-col flex-1">
@@ -152,25 +179,24 @@ export function Dashboard({
           <h1 className="text-lg font-bold tracking-tight" style={{ color: "var(--cyan)" }}>
             NiftyLens
           </h1>
-          <span className="text-xs text-text-muted hidden sm:inline">
-            {market === "india" ? "Indian Market Valuation Dashboard" : "US Market Valuation Dashboard"}
-          </span>
+          <span className="text-xs text-text-muted hidden sm:inline">{marketLabel}</span>
         </div>
         <div className="flex items-center gap-3 flex-wrap">
           <MarketSwitcher market={market} onChange={setMarket} />
-          <StalenessIndicator lastUpdated={market === "india" ? lastUpdated : usLastUpdated} />
-          <ViewToggle
-            view={view}
-            onChange={setView}
-            snapshotLabel={market === "india" ? "5Y Snapshot" : "Key Eras"}
-          />
+          <StalenessIndicator lastUpdated={staleness} />
+          {isRich && (
+            <ViewToggle
+              view={view}
+              onChange={setView}
+              snapshotLabel={market === "india" ? "5Y Snapshot" : "Key Eras"}
+            />
+          )}
         </div>
       </header>
 
-      {/* Tab navigation */}
-      {market === "india" ? (
-        <TabNav activeTab={activeTab} onChange={(t) => setActiveTab(t as TabId)} />
-      ) : (
+      {/* Tab navigation — only for the rich (India/US) markets */}
+      {market === "india" && <TabNav activeTab={activeTab} onChange={(t) => setActiveTab(t as TabId)} />}
+      {market === "us" && (
         <TabNav
           activeTab={activeTabUS}
           onChange={(t) => setActiveTabUS(t as TabIdUS)}
@@ -180,7 +206,11 @@ export function Dashboard({
       )}
 
       {/* Tab content */}
-      <main className="flex-1">{market === "india" ? renderIndiaTab() : renderUsTab()}</main>
+      <main className="flex-1">
+        {market === "india" && renderIndiaTab()}
+        {market === "us" && renderUsTab()}
+        {!isRich && renderIntlView()}
+      </main>
     </div>
   );
 }

@@ -16,11 +16,10 @@ function fmt(v: number, decimals = 1): string {
   return v.toFixed(decimals);
 }
 
-export function WatchListUS({ latest, prev }: WatchListUSProps) {
+export function WatchListUS({ latest }: WatchListUSProps) {
   const candidates: WatchItem[] = [];
 
-  const { usVsExUsPremium, forwardErp, epsGrowthYoy, mcapGdp, fundNetFlow } = latest;
-  const prevFundNet = prev?.fundNetFlow ?? null;
+  const { usVsExUsPremium, trailingErp, epsGrowthYoy, mcapGdp, capeRatio, sp500PeTrailing } = latest;
 
   if (usVsExUsPremium !== null && usVsExUsPremium > 45) {
     candidates.push({
@@ -29,10 +28,10 @@ export function WatchListUS({ latest, prev }: WatchListUSProps) {
     });
   }
 
-  if (forwardErp !== null && forwardErp >= -1.5 && forwardErp <= 0) {
+  if (trailingErp !== null && trailingErp >= -1.5 && trailingErp <= 0) {
     candidates.push({
       priority: 2,
-      text: `Forward ERP at ${fmt(forwardErp, 2)}% — tight. Next quarter's earnings will be the critical test.`,
+      text: `Trailing ERP at ${fmt(trailingErp, 2)}% — tight. Bonds currently compete well with equity earnings.`,
     });
   }
 
@@ -51,10 +50,10 @@ export function WatchListUS({ latest, prev }: WatchListUSProps) {
     });
   }
 
-  if (fundNetFlow !== null && prevFundNet !== null && fundNetFlow < prevFundNet && fundNetFlow < 0) {
+  if (capeRatio !== null && sp500PeTrailing !== null && capeRatio > sp500PeTrailing * 1.5) {
     candidates.push({
       priority: 5,
-      text: `Long-term fund flows turned net negative ($${fmt(Math.abs(fundNetFlow))}B outflow) — a shift from prior-year inflows.`,
+      text: `Shiller CAPE (${fmt(capeRatio)}x) is running well above trailing PE (${fmt(sp500PeTrailing)}x) — the earnings-smoothing lens sees more froth than the headline number.`,
     });
   }
 

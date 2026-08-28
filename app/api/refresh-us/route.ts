@@ -26,7 +26,7 @@ export const dynamic = "force-dynamic";
 
 import { fetchSp500Price, fetchVix, fetchUsExUsProxies } from "@/lib/data-sources/us/yahoo-us";
 import { fetchMultplCurrent } from "@/lib/data-sources/us/multpl";
-import { fetchFredLatest } from "@/lib/data-sources/us/fred";
+import { fetchFredLatest } from "@/lib/data-sources/fred";
 
 function isAuthorized(request: Request): boolean {
   const secret = process.env.CRON_SECRET;

@@ -18,13 +18,6 @@ function fmtPct(v: number | null, decimals = 1): string {
   return (v >= 0 ? "+" : "") + v.toFixed(decimals) + "%";
 }
 
-function fmtFlow(v: number | null): string {
-  if (v === null || v === undefined) return "—";
-  const abs = Math.abs(v);
-  const sign = v < 0 ? "-" : "+";
-  return `${sign}$${abs.toFixed(0)}B`;
-}
-
 function compositeSignal(score: number | null): string {
   if (score === null || score === undefined) return "—";
   if (score >= 7) return "Attractive";
@@ -150,11 +143,10 @@ export function OverviewTabUS({ snapshots, view, latest }: OverviewTabUSProps) {
           context="Modern regime trades structurally above the long-run median — expected."
         />
         <VerdictCard
-          label="Forward PE"
-          value={latest.forwardPe ? latest.forwardPe.toFixed(1) + "x" : "—"}
-          subvalue={latest.forwardPeZone ?? undefined}
-          signal={latest.forwardPeZone ?? null}
-          context="Manually updated from Yardeni/FactSet's free weekly research."
+          label="Dividend Yield"
+          value={latest.dividendYield !== null ? latest.dividendYield.toFixed(2) + "%" : "—"}
+          signal={latest.dySignal ?? null}
+          context="multpl.com, live. Structural downward drift as buybacks replace dividends."
         />
         <VerdictCard
           label="EPS Growth YoY"
@@ -177,10 +169,10 @@ export function OverviewTabUS({ snapshots, view, latest }: OverviewTabUSProps) {
           context="SPY vs ACWX PE premium. Mirrors India's India-vs-EM tab."
         />
         <VerdictCard
-          label="Forward ERP"
-          value={latest.forwardErp !== null ? fmtPct(latest.forwardErp, 2) : "—"}
+          label="Trailing ERP"
+          value={latest.trailingErp !== null ? fmtPct(latest.trailingErp, 2) : "—"}
           signal={latest.erpSignal ?? null}
-          context="Forward earnings yield minus 10Y Treasury yield."
+          context="Trailing earnings yield minus 10Y Treasury yield (FRED, official)."
         />
         <VerdictCard
           label="Mcap/GDP"
@@ -190,25 +182,13 @@ export function OverviewTabUS({ snapshots, view, latest }: OverviewTabUSProps) {
           context="Buffett indicator, from World Bank official data. Structurally elevated vs. pre-2000s norms."
         />
         <VerdictCard
-          label="Fund Flows (annual)"
-          value={fmtFlow(latest.fundNetFlow)}
-          signal={latest.fundNetFlow !== null ? (latest.fundNetFlow > 0 ? "Buy" : "Outflow") : null}
-          context="Net long-term fund flows (ICI). US analogue of India's SIP."
-        />
-        <VerdictCard
-          label="Foreign Net Flow (annual)"
-          value={fmtFlow(latest.foreignNetFlow)}
-          signal={latest.foreignNetFlow !== null ? (latest.foreignNetFlow > 0 ? "Buy" : "Outflow") : null}
-          context="Net foreign purchases of US securities (Treasury TIC)."
-        />
-        <VerdictCard
           label="Composite Score"
           value={
             latest.compositeScore !== null ? latest.compositeScore.toFixed(1) + "/10" : "—"
           }
           subvalue={latest.compositeZone ?? undefined}
           signal={compositeSignal(latest.compositeScore)}
-          context="10 signals, mirroring India's structure for cross-market comparison."
+          context="7 signals — every one fed by a genuinely automated data source."
         />
       </div>
 

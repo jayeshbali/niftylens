@@ -1,7 +1,7 @@
 "use client";
 
 import type { UsMarketSnapshot } from "@/types";
-import type { UsMarketDailySnapshot, UsMarketMonthlyFlow } from "@/lib/db/schema";
+import type { UsMarketDailySnapshot } from "@/lib/db/schema";
 import { DataTable, type TableRow } from "@/components/DataTable";
 import { InfoCard } from "@/components/InfoCard";
 import { VerdictCard } from "@/components/VerdictCard";
@@ -13,10 +13,6 @@ interface RiskSentimentTabUSProps {
   view: "snapshot" | "full";
   latest: UsMarketSnapshot;
   latestDaily?: Pick<UsMarketDailySnapshot, "vix" | "hySpread" | "yieldCurve10y2y" | "realYield10y"> | null;
-  latestMonthly?: Pick<
-    UsMarketMonthlyFlow,
-    "aaiiBullishPct" | "aaiiBearishPct" | "aaiiNeutralPct" | "marginDebtBalance" | "top10ConcentrationPct"
-  > | null;
 }
 
 function vixSignal(v: number | null | undefined): string | null {
@@ -40,13 +36,7 @@ function curveSignal(v: number | null | undefined): string | null {
   return "Neutral";
 }
 
-export function RiskSentimentTabUS({
-  snapshots,
-  view,
-  latest,
-  latestDaily,
-  latestMonthly,
-}: RiskSentimentTabUSProps) {
+export function RiskSentimentTabUS({ snapshots, view, latest, latestDaily }: RiskSentimentTabUSProps) {
   const displaySnapshots =
     view === "snapshot" ? snapshots.filter((s) => SNAPSHOT_YEARS_US.includes(s.year)) : snapshots;
 
@@ -110,46 +100,6 @@ export function RiskSentimentTabUS({
             signal={null}
             context="10Y TIPS yield — a cleaner risk-free rate than nominal Treasuries."
           />
-          <VerdictCard
-            label="AAII Bullish %"
-            value={
-              latestMonthly?.aaiiBullishPct !== null && latestMonthly?.aaiiBullishPct !== undefined
-                ? latestMonthly.aaiiBullishPct.toFixed(1) + "%"
-                : "—"
-            }
-            signal={null}
-            context="Weekly retail investor sentiment survey. Extremes are contrarian signals."
-          />
-          <VerdictCard
-            label="AAII Bearish %"
-            value={
-              latestMonthly?.aaiiBearishPct !== null && latestMonthly?.aaiiBearishPct !== undefined
-                ? latestMonthly.aaiiBearishPct.toFixed(1) + "%"
-                : "—"
-            }
-            signal={null}
-            context="High bearishness at market bottoms is a classic contrarian tell."
-          />
-          <VerdictCard
-            label="Margin Debt"
-            value={
-              latestMonthly?.marginDebtBalance !== null && latestMonthly?.marginDebtBalance !== undefined
-                ? `$${latestMonthly.marginDebtBalance.toFixed(0)}B`
-                : "—"
-            }
-            signal={null}
-            context="FINRA margin debt balance. Rapid growth flags speculative leverage."
-          />
-          <VerdictCard
-            label="Top-10 Concentration"
-            value={
-              latestMonthly?.top10ConcentrationPct !== null && latestMonthly?.top10ConcentrationPct !== undefined
-                ? latestMonthly.top10ConcentrationPct.toFixed(1) + "%"
-                : "—"
-            }
-            signal={null}
-            context="S&P 500's top-10 holdings weight. Elevated concentration raises single-name risk."
-          />
         </div>
       </div>
 
@@ -161,9 +111,8 @@ export function RiskSentimentTabUS({
       </div>
 
       <p className="text-xs text-text-muted px-1">
-        These metrics are informational only — none feed into the Composite Score, so that
-        score stays directly comparable to India's 10-signal structure. AAII sentiment,
-        margin debt, and concentration have no free API and are entered manually.
+        These metrics are informational only — none feed into the Composite Score.
+        All are fully automated (no manual entry).
       </p>
     </div>
   );

@@ -1,4 +1,4 @@
-import { sqliteTable, text, real, integer } from "drizzle-orm/sqlite-core";
+import { sqliteTable, text, real, integer, uniqueIndex } from "drizzle-orm/sqlite-core";
 
 // Annual March-end snapshot — one row per year (historical + live)
 export const marketAnnualSnapshots = sqliteTable("market_annual_snapshots", {
@@ -263,6 +263,73 @@ export const usMarketMonthlyFlows = sqliteTable("us_market_monthly_flows", {
   dataSource: text("data_source"),
   fetchedAt: text("fetched_at"),
 });
+
+// ═══════════════════════════════════════════════════════════════════════════
+// International markets (China, Japan, Germany, UK, France) — a single
+// generic pair of tables shared across all 5, discriminated by `market`.
+// The metric set is intentionally thin: index level, PE, dividend yield,
+// CAPE, 10Y bond yield (null for China — not OECD-covered), trailing ERP,
+// Mcap/GDP. No P/B, no deep history — see /methodology for why. This is
+// NOT the per-market-file-per-tab pattern used for India/US; those markets
+// have deep, rich data and 11+ tabs each. These 5 don't, so one lean
+// generic view (components/IntlMarketView.tsx) covers all of them.
+// ═══════════════════════════════════════════════════════════════════════════
+
+export type IntlMarketId = "china" | "japan" | "germany" | "uk" | "france";
+
+// Live daily index level (the only genuinely daily-fresh metric for these markets).
+export const intlMarketDailySnapshots = sqliteTable(
+  "intl_market_daily_snapshots",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    market: text("market").notNull(), // IntlMarketId
+    date: text("date").notNull(), // ISO date "2026-08-28"
+
+    indexLevel: real("index_level"),
+
+    dataSource: text("data_source"),
+    fetchedAt: text("fetched_at"),
+  },
+  (table) => ({
+    marketDateIdx: uniqueIndex("intl_daily_market_date_idx").on(table.market, table.date),
+  })
+);
+
+// Semi-annual valuation snapshots (Siblis Research's free-tier cadence —
+// this *is* the full available history, not a seed in the India/US sense).
+export const intlMarketSnapshots = sqliteTable(
+  "intl_market_snapshots",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    market: text("market").notNull(), // IntlMarketId
+    period: text("period").notNull(), // "2025-12", "2026-06" — Siblis's semi-annual columns
+
+    indexLevel: real("index_level"),
+    peTrailing: real("pe_trailing"),
+    dividendYield: real("dividend_yield"),
+    capeRatio: real("cape_ratio"),
+
+    bondYield10y: real("bond_yield_10y"), // null for China — no free OECD-style series
+    trailingEarningsYield: real("trailing_earnings_yield"),
+    trailingErp: real("trailing_erp"),
+
+    mcapGdp: real("mcap_gdp"),
+
+    compositeScore: real("composite_score"),
+    compositeZone: text("composite_zone"),
+
+    dataSource: text("data_source"),
+    fetchedAt: text("fetched_at"),
+  },
+  (table) => ({
+    marketPeriodIdx: uniqueIndex("intl_snapshots_market_period_idx").on(table.market, table.period),
+  })
+);
+
+export type IntlMarketDailySnapshot = typeof intlMarketDailySnapshots.$inferSelect;
+export type NewIntlMarketDailySnapshot = typeof intlMarketDailySnapshots.$inferInsert;
+export type IntlMarketSnapshot = typeof intlMarketSnapshots.$inferSelect;
+export type NewIntlMarketSnapshot = typeof intlMarketSnapshots.$inferInsert;
 
 export type UsMarketAnnualSnapshot = typeof usMarketAnnualSnapshots.$inferSelect;
 export type NewUsMarketAnnualSnapshot = typeof usMarketAnnualSnapshots.$inferInsert;
